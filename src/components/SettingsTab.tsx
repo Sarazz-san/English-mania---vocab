@@ -4,24 +4,28 @@ import { Settings, Save } from 'lucide-react';
 import { useLiveQuery } from 'dexie-react-hooks';
 
 export default function SettingsTab() {
- const settingsRow = useLiveQuery(() => db.appState.get('settings'));
- const [inputValue, setInputValue] = useState('8');
+  const settingsRow = useLiveQuery(() => db.appState.get('settings'));
+  const [inputValue, setInputValue] = useState('8');
+  const [trapMode, setTrapMode] = useState(false);
 
- useEffect(() => {
- if (settingsRow && settingsRow.value && typeof settingsRow.value.dailyLimit === 'number') {
- setInputValue(settingsRow.value.dailyLimit.toString());
- }
- }, [settingsRow]);
+  useEffect(() => {
+    if (settingsRow && settingsRow.value) {
+      if (typeof settingsRow.value.dailyLimit === 'number') {
+        setInputValue(settingsRow.value.dailyLimit.toString());
+      }
+      setTrapMode(!!settingsRow.value.trapMode);
+    }
+  }, [settingsRow]);
 
- const handleSave = async (e: React.FormEvent) => {
- e.preventDefault();
- let val = parseInt(inputValue, 10);
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    let val = parseInt(inputValue, 10);
     if (isNaN(val) || val < 1) val = 1;
     if (val > 30) val = 30;
     setInputValue(val.toString());
-    await db.appState.put({ id: 'settings', value: { ...settingsRow?.value, dailyLimit: val } });
- alert('Settings saved!');
- };
+    await db.appState.put({ id: 'settings', value: { ...settingsRow?.value, dailyLimit: val, trapMode } });
+    alert('Settings saved!');
+  };
 
  return (
  <div className="max-w-2xl mx-auto h-full flex flex-col pt-4 pb-8 animate-in fade-in">
@@ -50,6 +54,25 @@ export default function SettingsTab() {
  }}
  className="w-32 px-3 py-2 bg-bg border border-border rounded-xl outline-none focus:border-primary focus:ring-2 focus:ring-primary-bg transition-all text-text-main"
  />
+ </div>
+
+ <div className="border-t border-border pt-6">
+ <label className="flex items-start gap-3 cursor-pointer">
+ <input 
+ type="checkbox" 
+ id="settings_trap_mode"
+ checked={trapMode}
+ onChange={e => setTrapMode(e.target.checked)}
+ className="mt-1 h-4 w-4 rounded border-border text-primary focus:ring-primary-bg bg-bg"
+ />
+ <div>
+ <span className="block text-sm font-medium text-text-main">Mode Piège (Survival Match)</span>
+ <span className="block text-xs text-text-muted mt-1">
+ Certains mots issus de vos sessions d'apprentissage apparaissent d'un seul côté au début (probabilité de 15-20% à partir du niveau de jeu 2).
+ La traduction manquante est injectée au prochain match réussi, empêchant d'appairer par simple élimination.
+ </span>
+ </div>
+ </label>
  </div>
  
  <button type="submit" className="flex items-center gap-2 px-6 py-2.5 bg-primary text-primary-text rounded-xl font-medium hover:bg-primary-hover transition-colors shadow-sm">

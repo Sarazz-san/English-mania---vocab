@@ -196,6 +196,17 @@ Keep it up! 🚀`;
  <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-emerald-400" /> Acquired ({stats.acquired})</div>
  {stats.leeches.length > 0 && <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-danger" /> Leeches ({stats.leeches.length})</div>}
  </div>
+
+ <div className="border-t border-border mt-4 pt-4">
+ <div className="text-xs font-semibold text-text-muted mb-2 uppercase tracking-wider">Registers Distribution</div>
+ <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
+ <span className="text-text-main">Conversational: <span className="font-bold">{stats.registers['conversational'] || 0}</span></span>
+ <span className="text-text-muted">•</span>
+ <span className="text-text-main">Academic: <span className="font-bold">{stats.registers['academic'] || 0}</span></span>
+ <span className="text-text-muted">•</span>
+ <span className="text-text-main">Neutral: <span className="font-bold">{stats.registers['neutral'] || 0}</span></span>
+ </div>
+ </div>
  </div>
  
  {/* Leeches Modal */}

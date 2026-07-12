@@ -28,6 +28,7 @@ export interface Progress {
   lastReviewedAt: number | null;
   nextDueAt: number; // timestamp
   exposureCount: number;
+  box6CorrectCount?: number; // count of consecutive correct reviews in Box 6 for maintenance spacing (30 -> 60 -> 90 days)
 }
 
 export interface ReviewLog {
@@ -53,9 +54,16 @@ export interface AppState {
   currentStreak: number;
 }
 
-export interface SearchHistory {
-  id: string;
-  term: string;
-  timestamp: number; // last searched
-  occurrences: number;
+export interface DictionaryCacheEntry {
+  word: string; // key (queried word, lowercase & trimmed)
+  sourceLanguage: string; // 'en' or 'fr'
+  candidates: {
+    word: string;
+    example: string;
+  }[];
+  pos: Pos;
+  register: Register;
+  timestamp: number;
 }
+
+

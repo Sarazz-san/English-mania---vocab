@@ -4,13 +4,12 @@ import ReviewSession from './components/ReviewSession';
 import WordManager from './components/WordManager';
 import VocabMatch from './components/VocabMatch';
 import Dictionary from './components/Dictionary';
-import HistoryTab from './components/HistoryTab';
 import SettingsTab from './components/SettingsTab';
 import ErrorBoundary from './components/ErrorBoundary';
-import { Home, Layers, Gamepad2, BookA, Clock, Moon, Sun, Settings } from 'lucide-react';
+import { Layers, Library, Gamepad2, BookMarked, Moon, Sun, Settings } from 'lucide-react';
 
 export default function App() {
- const [activeTab, setActiveTab] = useState<'dashboard' | 'words' | 'game' | 'review' | 'dict' | 'history' | 'settings'>('dict');
+ const [activeTab, setActiveTab] = useState<'dashboard' | 'words' | 'game' | 'review' | 'dict' | 'settings'>('dict');
  const [isDark, setIsDark] = useState(() => {
  const saved = localStorage.getItem('theme');
  if (saved) return saved === 'dark';
@@ -34,10 +33,6 @@ export default function App() {
  setActiveTab('words');
  };
 
- const handleSearchFromHistory = (term: string) => {
- setActiveTab('dict');
- };
-
  return (
  <div className="min-h-screen bg-bg flex flex-col font-sans text-text-main transition-colors duration-300">
  
@@ -45,7 +40,7 @@ export default function App() {
  <header className="bg-surface border-b border-border sticky top-0 z-10 px-4 sm:px-6 h-16 flex items-center justify-between shadow-sm transition-colors">
  <div className="flex items-center gap-2 font-bold text-xl tracking-tight text-text-main">
  <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-surface shadow-inner">
- <BookA className="w-5 h-5" />
+ <BookMarked className="w-5 h-5" strokeWidth={2} />
  </div>
  Smart Dic
  </div>
@@ -53,12 +48,11 @@ export default function App() {
  {activeTab !== 'review' && (
  <div className="flex items-center gap-4">
  <nav className="hidden md:flex items-center bg-surface-hover p-1 rounded-xl">
- <NavButton icon={<BookA className="w-4 h-4" />} label="Dictionary" active={activeTab === 'dict'} onClick={() => setActiveTab('dict')} />
- <NavButton icon={<Home className="w-4 h-4" />} label="Learning" active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />
- <NavButton icon={<Layers className="w-4 h-4" />} label="My Words" active={activeTab === 'words'} onClick={() => setActiveTab('words')} />
- <NavButton icon={<Gamepad2 className="w-4 h-4" />} label="Match" active={activeTab === 'game'} onClick={() => setActiveTab('game')} />
- <NavButton icon={<Clock className="w-4 h-4" />} label="History" active={activeTab === 'history'} onClick={() => setActiveTab('history')} />
- <NavButton icon={<Settings className="w-4 h-4" />} label="Settings" active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} />
+ <NavButton icon={<BookMarked className="w-4 h-4" strokeWidth={2} />} label="Dictionnaire" active={activeTab === 'dict'} onClick={() => setActiveTab('dict')} />
+ <NavButton icon={<Layers className="w-4 h-4" strokeWidth={2} />} label="Apprentissage" active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />
+ <NavButton icon={<Library className="w-4 h-4" strokeWidth={2} />} label="Mes Mots" active={activeTab === 'words'} onClick={() => setActiveTab('words')} />
+ <NavButton icon={<Gamepad2 className="w-4 h-4" strokeWidth={2} />} label="Match" active={activeTab === 'game'} onClick={() => setActiveTab('game')} />
+ <NavButton icon={<Settings className="w-4 h-4" strokeWidth={2} />} label="Paramètres" active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} />
  </nav>
  <button 
  onClick={() => setIsDark(!isDark)}
@@ -77,7 +71,6 @@ export default function App() {
  {activeTab === 'dashboard' && <Dashboard onStartReview={() => setActiveTab('review')} />}
  {activeTab === 'words' && <WordManager initialWord={addWordInitial} onClearInitial={() => setAddWordInitial(undefined)} />}
  {activeTab === 'game' && <VocabMatch />}
- {activeTab === 'history' && <HistoryTab onSearchTerm={handleSearchFromHistory} />}
  {activeTab === 'settings' && <SettingsTab />}
  {activeTab === 'review' && <ReviewSession onFinish={() => setActiveTab('dashboard')} />}
  </ErrorBoundary>
@@ -86,11 +79,11 @@ export default function App() {
  {/* Mobile Navigation */}
  {activeTab !== 'review' && (
  <div className="md:hidden fixed bottom-0 left-0 right-0 bg-surface border-t border-border p-2 flex justify-around pb-safe z-20 transition-colors overflow-x-auto">
- <MobileNavButton icon={<BookA className="w-5 h-5" />} label="Dict" active={activeTab === 'dict'} onClick={() => setActiveTab('dict')} />
- <MobileNavButton icon={<Home className="w-5 h-5" />} label="Learn" active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />
- <MobileNavButton icon={<Layers className="w-5 h-5" />} label="Words" active={activeTab === 'words'} onClick={() => setActiveTab('words')} />
- <MobileNavButton icon={<Gamepad2 className="w-5 h-5" />} label="Match" active={activeTab === 'game'} onClick={() => setActiveTab('game')} />
- <MobileNavButton icon={<Settings className="w-5 h-5" />} label="Settings" active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} />
+ <MobileNavButton icon={<BookMarked className="w-5 h-5" strokeWidth={2} />} label="Dict" active={activeTab === 'dict'} onClick={() => setActiveTab('dict')} />
+ <MobileNavButton icon={<Layers className="w-5 h-5" strokeWidth={2} />} label="Learn" active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />
+ <MobileNavButton icon={<Library className="w-5 h-5" strokeWidth={2} />} label="Words" active={activeTab === 'words'} onClick={() => setActiveTab('words')} />
+ <MobileNavButton icon={<Gamepad2 className="w-5 h-5" strokeWidth={2} />} label="Match" active={activeTab === 'game'} onClick={() => setActiveTab('game')} />
+ <MobileNavButton icon={<Settings className="w-5 h-5" strokeWidth={2} />} label="Param" active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} />
  </div>
  )}
  </div>

@@ -83,7 +83,7 @@ export default function ReviewSession({ onFinish }: { onFinish: () => void }) {
  if (feedback !== null || !input.trim()) return;
 
  // Normalize: lowercase, replace punctuation with space, remove extra spaces
- const normalize = (s: string) => s.toLowerCase().replace(/[''-]/g, ' ').replace(/\s+/g, ' ').trim();
+ const normalize = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[''-]/g, ' ').replace(/\s+/g, ' ').trim();
  
  const normalizedInput = normalize(input);
  const normalizedCorrect = normalize(currentItem.word.en);
@@ -171,7 +171,7 @@ export default function ReviewSession({ onFinish }: { onFinish: () => void }) {
  
  {/* Progress bar */}
  <div className="w-full h-1.5 bg-surface-hover rounded-full mb-12 overflow-hidden">
- <div className="h-full bg-primary-bg0 transition-all duration-300 ease-out" style={{ width: `${progressPct}%` }} />
+ <div className="h-full bg-primary transition-all duration-300 ease-out" style={{ width: `${progressPct}%` }} />
  </div>
 
  {/* Card */}

@@ -38,13 +38,20 @@ export async function processReview(wordId: string, correct: boolean, mode: Revi
     boxAfter = Math.min(boxBefore + 1, 6);
     if (boxAfter === 6) {
       progress.status = 'acquired';
+      if (boxBefore === 6) {
+        progress.box6CorrectCount = (progress.box6CorrectCount || 0) + 1;
+      } else {
+        progress.box6CorrectCount = 1;
+      }
     } else {
       progress.status = 'learning';
+      progress.box6CorrectCount = 0;
     }
   } else {
     progress.timesWrong += 1;
     progress.consecutiveResets += 1;
     boxAfter = 1; // Strict reset to box 1
+    progress.box6CorrectCount = 0;
     
     if (progress.consecutiveResets >= 4) {
       progress.status = 'leech';
@@ -54,8 +61,12 @@ export async function processReview(wordId: string, correct: boolean, mode: Revi
   }
 
   progress.box = boxAfter;
-  // Compute next due date using interval. If acquired (box 6), keep adding 30 (or more, but 30 is fine for v1)
-  const daysToAdd = boxAfter === 6 ? 30 : BOX_INTERVALS[boxAfter];
+  // Compute next due date using interval. If acquired (box 6), keep adding progressive maintenance days (30 -> 60 -> 90)
+  let daysToAdd = BOX_INTERVALS[boxAfter];
+  if (boxAfter === 6) {
+    const c = progress.box6CorrectCount || 1;
+    daysToAdd = c === 1 ? 30 : c === 2 ? 60 : 90;
+  }
   progress.nextDueAt = addDays(now, daysToAdd).getTime();
 
   await db.progress.put(progress);

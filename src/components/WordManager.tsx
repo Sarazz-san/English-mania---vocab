@@ -166,8 +166,9 @@ function ToolsPanel() {
 }
 
 function WordList() {
- const [search, setSearch] = useState('');
+  const [search, setSearch] = useState('');
   const [wordToDelete, setWordToDelete] = useState<Word | null>(null);
+  const [wordToEdit, setWordToEdit] = useState<Word | null>(null);
   
   const handleDelete = async () => {
     if (wordToDelete && wordToDelete.id) {
@@ -176,64 +177,73 @@ function WordList() {
     }
   };
  
- const words = useLiveQuery(async () => {
- let collection = db.words;
- let items = await collection.orderBy('dateAdded').reverse().toArray();
- 
- if (search.trim()) {
- const s = search.trim().toLowerCase();
- items = items.filter(w => (w.en || '').toLowerCase().includes(s) || (w.fr || '').toLowerCase().includes(s));
- }
- 
- return items;
- }, [search]);
+  const words = useLiveQuery(async () => {
+    let collection = db.words;
+    let items = await collection.orderBy('dateAdded').reverse().toArray();
+    
+    if (search.trim()) {
+      const s = search.trim().toLowerCase().replace(/\s+/g, ' ');
+      items = items.filter(w => 
+        (w.en || '').toLowerCase().replace(/\s+/g, ' ').includes(s) || 
+        (w.fr || '').toLowerCase().replace(/\s+/g, ' ').includes(s)
+      );
+    }
+    
+    return items;
+  }, [search]);
 
- if (!words) return <div className="text-text-muted text-center py-10">Loading...</div>;
+  if (!words) return <div className="text-text-muted text-center py-10">Loading...</div>;
 
- return (
- <div className="space-y-4">
- <div className="relative">
- <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
- <input 
- type="text" 
- placeholder="Search your vocabulary..."
- value={search}
- onChange={(e) => setSearch(e.target.value)}
- className="w-full pl-10 pr-4 py-2.5 bg-surface border border-border rounded-xl outline-none focus:border-primary focus:ring-2 focus:ring-primary-bg transition-all text-text-main"
- />
- </div>
+  return (
+    <div className="space-y-4">
+      <div className="relative">
+        <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+        <input 
+          type="text" 
+          placeholder="Search your vocabulary..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full pl-10 pr-4 py-2.5 bg-surface border border-border rounded-xl outline-none focus:border-primary focus:ring-2 focus:ring-primary-bg transition-all text-text-main"
+        />
+      </div>
 
- <div className="bg-surface border border-border rounded-2xl overflow-hidden shadow-sm transition-colors">
- {words.length === 0 ? (
- <div className="p-10 text-center text-text-muted">No words found.</div>
- ) : (
- <ul className="divide-y divide-border">
- {words.map(w => (
- <li key={w.id} className="p-4 hover:bg-bg/50 flex items-center justify-between transition-colors">
- <div>
- <div className="flex items-center gap-2">
- <span className="font-semibold text-lg text-text-main">{w.en || "Unknown"}</span>
- <span className="text-sm px-2 py-0.5 rounded-full bg-surface-hover text-text-muted font-mono">{w.pos}</span>
- </div>
- <div className="text-text-muted">{w.fr}</div>
- </div>
- <div className="text-xs text-text-muted flex flex-col items-end">
- {w.archived && <span className="flex items-center gap-1 text-danger bg-danger-bg px-2 py-1 rounded-md mb-1"><Archive className="w-3 h-3" /> Archived</span>}
- <span>{new Date(w.dateAdded).toLocaleDateString()}</span>
- </div>
-            <button
-              onClick={(e) => { e.stopPropagation(); setWordToDelete(w); }}
-              className="ml-4 p-2 text-text-muted hover:text-danger hover:bg-danger-bg rounded-xl transition-colors"
-              title="Delete word"
-            >
-              <Trash2 className="w-5 h-5" />
-            </button>
- </li>
- ))}
- </ul>
- )}
- </div>
- 
+      <div className="bg-surface border border-border rounded-2xl overflow-hidden shadow-sm transition-colors">
+        {words.length === 0 ? (
+          <div className="p-10 text-center text-text-muted">No words found.</div>
+        ) : (
+          <ul className="divide-y divide-border">
+            {words.map(w => (
+              <li 
+                key={w.id} 
+                onClick={() => setWordToEdit(w)}
+                className="p-4 hover:bg-bg/50 flex items-center justify-between transition-colors cursor-pointer"
+              >
+                <div className="flex-1 min-w-0 pr-4">
+                  <div className="flex items-center gap-2 flex-wrap mb-1">
+                    <span className="font-semibold text-base sm:text-lg text-text-main truncate max-w-full">{w.en || "Unknown"}</span>
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-surface-hover text-text-muted font-mono">{w.pos}</span>
+                  </div>
+                  <div className="text-text-muted text-sm sm:text-base truncate">{w.fr}</div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <div className="text-xs text-text-muted flex flex-col items-end">
+                    {w.archived && <span className="flex items-center gap-1 text-danger bg-danger-bg px-2 py-0.5 rounded-md mb-1"><Archive className="w-3 h-3" /> Archived</span>}
+                    <span>{new Date(w.dateAdded).toLocaleDateString()}</span>
+                  </div>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setWordToDelete(w); }}
+                    className="p-2 text-text-muted hover:text-danger hover:bg-danger-bg rounded-xl transition-colors"
+                    title="Delete word"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+  
       {wordToDelete && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-surface rounded-2xl p-6 max-w-sm w-full shadow-lg border border-border animate-in fade-in zoom-in-95">
@@ -265,227 +275,389 @@ function WordList() {
           </div>
         </div>
       )}
-</div>
- );
+
+      {wordToEdit && (
+        <EditWordModal 
+          word={wordToEdit} 
+          onClose={() => setWordToEdit(null)} 
+        />
+      )}
+    </div>
+  );
+}
+
+function EditWordModal({ word, onClose }: { word: Word; onClose: () => void }) {
+  const [en, setEn] = useState(word.en || '');
+  const [fr, setFr] = useState(word.fr || '');
+  const [pos, setPos] = useState<Pos>(word.pos || 'n');
+  const [register, setRegister] = useState<Register>(word.register || 'neutral');
+  const [context, setContext] = useState(word.context || '');
+  const [notes, setNotes] = useState(word.notes || '');
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!en.trim() || !fr.trim()) return;
+
+    await db.words.update(word.id, {
+      en: en.trim(),
+      fr: fr.trim(),
+      pos,
+      register,
+      context: context.trim() || null,
+      notes: notes.trim() || null
+    });
+
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 overflow-y-auto">
+      <div className="bg-surface w-full max-w-lg rounded-3xl border border-border shadow-xl p-6 sm:p-8 relative animate-in fade-in zoom-in-95 transition-colors max-h-[90vh] flex flex-col">
+        <button 
+          onClick={onClose}
+          className="absolute right-4 top-4 p-1.5 rounded-lg text-text-muted hover:text-text-main hover:bg-surface-hover transition-colors"
+          title="Fermer"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
+        <h2 className="text-xl font-bold mb-5 text-text-main">Modifier le mot</h2>
+
+        <form onSubmit={handleSave} className="space-y-4 overflow-y-auto pr-1 flex-1">
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-text-main">English Word/Expression *</label>
+            <input 
+              required
+              value={en}
+              onChange={e => setEn(e.target.value)}
+              className="w-full px-3 py-2.5 bg-surface-hover border border-border rounded-xl outline-none focus:border-primary focus:bg-surface transition-all text-text-main" 
+              placeholder="e.g. ubiquitous"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-text-main">French Translation *</label>
+            <input 
+              required
+              value={fr}
+              onChange={e => setFr(e.target.value)}
+              className="w-full px-3 py-2.5 bg-surface-hover border border-border rounded-xl outline-none focus:border-primary focus:bg-surface transition-all text-text-main" 
+              placeholder="e.g. omniprésent"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-text-main">Part of Speech</label>
+              <select 
+                value={pos} 
+                onChange={e => setPos(e.target.value as Pos)} 
+                className="w-full px-3 py-2.5 bg-surface-hover border border-border rounded-xl outline-none focus:border-primary focus:bg-surface transition-all text-text-main"
+              >
+                <option value="n">Noun (nom)</option>
+                <option value="v">Verb (verbe)</option>
+                <option value="adj">Adjective (adjectif)</option>
+                <option value="adv">Adverb (adverbe)</option>
+                <option value="phrasal_v">Phrasal Verb</option>
+                <option value="expr">Expression</option>
+                <option value="prep">Preposition</option>
+                <option value="conj">Conjunction</option>
+                <option value="pron">Pronoun</option>
+                <option value="interj">Interjection</option>
+                <option value="art">Article</option>
+              </select>
+            </div>
+            
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-text-main">Register</label>
+              <select 
+                value={register} 
+                onChange={e => setRegister(e.target.value as Register)} 
+                className="w-full px-3 py-2.5 bg-surface-hover border border-border rounded-xl outline-none focus:border-primary focus:bg-surface transition-all text-text-main"
+              >
+                <option value="neutral">Neutral</option>
+                <option value="conversational">Conversational</option>
+                <option value="academic">Academic / Formal</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-text-main">Context (Optional)</label>
+            <input 
+              value={context}
+              onChange={e => setContext(e.target.value)}
+              className="w-full px-3 py-2.5 bg-surface-hover border border-border rounded-xl outline-none focus:border-primary focus:bg-surface transition-all text-text-main" 
+              placeholder="Where did you hear/read it?"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-text-main">Notes / Examples (Optional)</label>
+            <input 
+              value={notes}
+              onChange={e => setNotes(e.target.value)}
+              className="w-full px-3 py-2.5 bg-surface-hover border border-border rounded-xl outline-none focus:border-primary focus:bg-surface transition-all text-text-main" 
+              placeholder="e.g. Mnemonic tips or example sentences"
+            />
+          </div>
+
+          <div className="mt-6 flex justify-end gap-3 pt-4 border-t border-border sticky bottom-0 bg-surface">
+            <button 
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-sm font-medium text-text-muted hover:text-text-main bg-surface-hover rounded-xl transition-colors"
+            >
+              Annuler
+            </button>
+            <button 
+              type="submit"
+              className="px-4 py-2 text-sm font-medium text-surface bg-primary hover:bg-primary-hover rounded-xl transition-colors"
+            >
+              Enregistrer
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
 }
 
 function AddWord({ onAdded, initialWord }: { onAdded: () => void, initialWord?: { en: string, fr: string } }) {
- const [en, setEn] = useState(initialWord?.en || '');
- const [fr, setFr] = useState(initialWord?.fr || '');
- const [pos, setPos] = useState<Pos>('n');
- const [register, setRegister] = useState<Register>('neutral');
- const [context, setContext] = useState('');
- const [notes, setNotes] = useState('');
- const [isTranslating, setIsTranslating] = useState(false);
- const [autoFilledPos, setAutoFilledPos] = useState(false);
- const [autoFilledRegister, setAutoFilledRegister] = useState(false);
+  const [en, setEn] = useState(initialWord?.en || '');
+  const [fr, setFr] = useState(initialWord?.fr || '');
+  const [pos, setPos] = useState<Pos>('n');
+  const [register, setRegister] = useState<Register>('neutral');
+  const [context, setContext] = useState('');
+  const [notes, setNotes] = useState('');
+  const [isTranslating, setIsTranslating] = useState(false);
+  const [autoFilledPos, setAutoFilledPos] = useState(false);
+  const [autoFilledRegister, setAutoFilledRegister] = useState(false);
 
- useEffect(() => {
- if (initialWord && initialWord.en) {
- handleAutoDetect(initialWord.en);
- }
- }, [initialWord]);
+  const performLookup = async (wordText: string, overwriteFr: boolean) => {
+    const term = wordText.trim();
+    if (!term) return;
 
- const handleAutoDetect = async (word: string) => {
- if (!word || !navigator.onLine) return;
- 
- // POS detection via Free Dictionary API
- try {
- const posRes = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`);
- if (posRes.ok) {
- const data = await posRes.json();
- if (data && data.length > 0 && data[0].meanings && data[0].meanings.length > 0) {
- const rawPos = data[0].meanings[0].partOfSpeech;
- const posMap: Record<string, Pos> = {
- 'noun': 'n', 'verb': 'v', 'adjective': 'adj', 'adverb': 'adv',
- 'preposition': 'prep', 'conjunction': 'conj', 'pronoun': 'pron', 'interjection': 'interj'
- };
- if (posMap[rawPos]) {
- setPos(posMap[rawPos]);
- setAutoFilledPos(true);
- }
- }
- }
- } catch (e) { console.error('POS fetch error', e); }
-
- // Register detection via Datamuse API
- try {
- const regRes = await fetch(`https://api.datamuse.com/words?sp=${encodeURIComponent(word)}&md=f`);
- if (regRes.ok) {
- const data = await regRes.json();
- const exactMatch = data.find((d: any) => d.word.toLowerCase() === word.toLowerCase());
- if (exactMatch && exactMatch.tags) {
- const fTag = exactMatch.tags.find((t: string) => t.startsWith('f:'));
- if (fTag) {
- const freq = parseFloat(fTag.replace('f:', ''));
- if (freq > 50) setRegister('conversational');
- else if (freq > 10) setRegister('neutral');
- else setRegister('academic');
- setAutoFilledRegister(true);
- }
- }
- }
- } catch (e) { console.error('Register fetch error', e); }
- };
-
- const translate = async () => {
-    if (!en.trim()) return;
     setIsTranslating(true);
+    setAutoFilledPos(false);
+    setAutoFilledRegister(false);
+
+    const normalizedTerm = term.toLowerCase();
+
     try {
-      const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(en)}&langpair=en|fr`);
-      const data = await res.json();
-      
-      let bestTranslation = "";
-      if (data && data.matches) {
-        const validMatches = data.matches.filter((m: any) => {
-          if (m.match < 0.7) return false;
-          const translated = m.translation.trim();
-          const latinRegex = /^[a-zA-ZÀ-ÿ\s\'\-.,!?()]+$/;
-          if (!latinRegex.test(translated)) return false;
-          return true;
-        });
-        if (validMatches.length > 0) {
-          validMatches.sort((a: any, b: any) => b.match - a.match);
-          bestTranslation = validMatches[0].translation.trim().toLowerCase();
+      // 1. Check Cache first
+      const cached = await db.dictionaryCache.get(normalizedTerm);
+      if (cached) {
+        if (cached.candidates && cached.candidates.length > 0) {
+          if (overwriteFr || !fr) {
+            setFr(cached.candidates[0].word);
+          }
+          setPos(cached.pos);
+          setRegister(cached.register);
+          setAutoFilledPos(true);
+          setAutoFilledRegister(true);
+          if (cached.candidates[0].example && !notes) {
+            setNotes(`Exemple: ${cached.candidates[0].example}`);
+          }
+        }
+        setIsTranslating(false);
+        return;
+      }
+
+      // 2. Fetch from API
+      if (!navigator.onLine) {
+        setIsTranslating(false);
+        return;
+      }
+
+      const res = await fetch('/api/dictionary', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ word: term })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.candidates && data.candidates.length > 0) {
+          if (overwriteFr || !fr) {
+            setFr(data.candidates[0].word);
+          }
+          setPos(data.pos || 'n');
+          setRegister(data.register || 'neutral');
+          setAutoFilledPos(true);
+          setAutoFilledRegister(true);
+          if (data.candidates[0].example && !notes) {
+            setNotes(`Exemple: ${data.candidates[0].example}`);
+          }
+
+          // Cache it
+          const sourceLang = data.sourceLanguage || 'en';
+          await db.dictionaryCache.put({
+            word: normalizedTerm,
+            sourceLanguage: sourceLang,
+            candidates: data.candidates.map((c: any) => ({ word: c.word.toLowerCase(), example: c.example })),
+            pos: data.pos || 'n',
+            register: data.register || 'neutral',
+            timestamp: Date.now()
+          });
         }
       }
-      
-      if (bestTranslation) {
-        setFr(bestTranslation);
-      } else {
-        setFr("Aucune traduction fiable");
-      }
-      handleAutoDetect(en);
     } catch (e) {
       console.error(e);
-      setFr("Aucune traduction fiable");
     } finally {
       setIsTranslating(false);
     }
   };
 
+  useEffect(() => {
+    if (initialWord && initialWord.en) {
+      setEn(initialWord.en);
+      if (initialWord.fr) {
+        setFr(initialWord.fr);
+      }
+      performLookup(initialWord.en, !initialWord.fr);
+    }
+  }, [initialWord]);
+
+  const translate = async () => {
+    if (!en.trim()) return;
+    await performLookup(en, true);
+  };
+
   const handleAdd = async (e: React.FormEvent) => {
- e.preventDefault();
- if (!en.trim() || !fr.trim()) return;
+    e.preventDefault();
+    if (!en.trim() || !fr.trim()) return;
 
- const id = uuidv4();
- const now = Date.now();
+    const id = uuidv4();
+    const now = Date.now();
 
- await db.words.add({
- id,
- en: en.trim(),
- fr: fr.trim(),
- pos,
- register,
- source: 'import',
- context: context.trim() || null,
- notes: notes.trim() || null,
- dateAdded: now,
- archived: false
- });
+    await db.words.add({
+      id,
+      en: en.trim(),
+      fr: fr.trim(),
+      pos,
+      register,
+      source: 'import',
+      context: context.trim() || null,
+      notes: notes.trim() || null,
+      dateAdded: now,
+      archived: false
+    });
 
- await db.progress.add({
- wordId: id,
- box: 1,
- status: 'new',
- timesSeen: 0,
- timesCorrect: 0,
- timesWrong: 0,
- consecutiveResets: 0,
- lastReviewedAt: null,
- nextDueAt: now,
- exposureCount: 0
- });
+    await db.progress.add({
+      wordId: id,
+      box: 1,
+      status: 'new',
+      timesSeen: 0,
+      timesCorrect: 0,
+      timesWrong: 0,
+      consecutiveResets: 0,
+      lastReviewedAt: null,
+      nextDueAt: now,
+      exposureCount: 0
+    });
 
- onAdded();
- };
+    onAdded();
+  };
 
- return (
- <div className="bg-surface p-6 sm:p-8 rounded-3xl border border-border shadow-sm max-w-2xl mx-auto transition-colors">
- <h2 className="text-xl font-bold mb-6 text-text-main">Add a new word</h2>
- <form onSubmit={handleAdd} className="space-y-5">
- 
- <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
- <div className="space-y-1.5">
- <label className="text-sm font-medium text-text-main">English Word/Expression *</label>
- <div className="relative">
- <input 
- autoFocus
- required
- value={en}
- onChange={e => setEn(e.target.value)}
- className="w-full pl-3 pr-10 py-2.5 bg-surface-hover border border-border rounded-xl outline-none focus:border-primary focus:bg-surface transition-all text-text-main" 
- placeholder="e.g. ubiquitous"
- />
- <button 
- type="button" 
- onClick={translate}
- disabled={isTranslating || !en.trim()}
- className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-text-muted hover:text-primary :text-indigo-400 disabled:opacity-50 transition-colors"
- title="Auto-translate"
- >
- {isTranslating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
- </button>
- </div>
- </div>
- 
- <div className="space-y-1.5">
- <label className="text-sm font-medium text-text-main">French Translation *</label>
- <input 
- required
- value={fr}
- onChange={e => setFr(e.target.value)}
- className="w-full px-3 py-2.5 bg-surface-hover border border-border rounded-xl outline-none focus:border-primary focus:bg-surface transition-all text-text-main" 
- placeholder="e.g. omniprésent"
- />
- </div>
- </div>
+  return (
+    <div className="bg-surface p-6 sm:p-8 rounded-3xl border border-border shadow-sm max-w-2xl mx-auto transition-colors">
+      <h2 className="text-xl font-bold mb-6 text-text-main">Add a new word</h2>
+      <form onSubmit={handleAdd} className="space-y-5">
+      
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-text-main">English Word/Expression *</label>
+            <div className="relative">
+              <input 
+                autoFocus
+                required
+                value={en}
+                onChange={e => setEn(e.target.value)}
+                className="w-full pl-3 pr-10 py-2.5 bg-surface-hover border border-border rounded-xl outline-none focus:border-primary focus:bg-surface transition-all text-text-main" 
+                placeholder="e.g. ubiquitous"
+              />
+              <button 
+                type="button" 
+                onClick={translate}
+                disabled={isTranslating || !en.trim()}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-text-muted hover:text-primary disabled:opacity-50 transition-colors"
+                title="Auto-translate"
+              >
+                {isTranslating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+              </button>
+            </div>
+          </div>
+          
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-text-main">French Translation *</label>
+            <input 
+              required
+              value={fr}
+              onChange={e => setFr(e.target.value)}
+              className="w-full px-3 py-2.5 bg-surface-hover border border-border rounded-xl outline-none focus:border-primary focus:bg-surface transition-all text-text-main" 
+              placeholder="e.g. omniprésent"
+            />
+          </div>
+        </div>
 
- <div className="grid grid-cols-2 gap-5">
- <div className="space-y-1.5">
- <label className="text-sm font-medium text-text-main flex items-center gap-1.5">
- Part of Speech {autoFilledPos && <Zap className="w-3.5 h-3.5 text-amber-500" title="Auto-detected" />}
- </label>
- <select value={pos} onChange={e => { setPos(e.target.value as Pos); setAutoFilledPos(false); }} className="w-full px-3 py-2.5 bg-surface-hover border border-border rounded-xl outline-none focus:border-primary focus:bg-surface transition-all text-text-main">
- <option value="n">Noun</option>
- <option value="v">Verb</option>
- <option value="adj">Adjective</option>
- <option value="adv">Adverb</option>
- <option value="phrasal_v">Phrasal Verb</option>
- <option value="expr">Expression</option>
- <option value="prep">Preposition</option>
- <option value="conj">Conjunction</option>
- </select>
- </div>
- 
- <div className="space-y-1.5">
- <label className="text-sm font-medium text-text-main flex items-center gap-1.5">
- Register {autoFilledRegister && <Zap className="w-3.5 h-3.5 text-amber-500" title="Auto-detected" />}
- </label>
- <select value={register} onChange={e => { setRegister(e.target.value as Register); setAutoFilledRegister(false); }} className="w-full px-3 py-2.5 bg-surface-hover border border-border rounded-xl outline-none focus:border-primary focus:bg-surface transition-all text-text-main">
- <option value="neutral">Neutral</option>
- <option value="conversational">Conversational</option>
- <option value="academic">Academic / Formal</option>
- </select>
- </div>
- </div>
+        <div className="grid grid-cols-2 gap-5">
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-text-main flex items-center gap-1.5">
+              Part of Speech {autoFilledPos && <Zap className="w-3.5 h-3.5 text-amber-500" title="Auto-detected" />}
+            </label>
+            <select value={pos} onChange={e => { setPos(e.target.value as Pos); setAutoFilledPos(false); }} className="w-full px-3 py-2.5 bg-surface-hover border border-border rounded-xl outline-none focus:border-primary focus:bg-surface transition-all text-text-main">
+              <option value="n">Noun</option>
+              <option value="v">Verb</option>
+              <option value="adj">Adjective</option>
+              <option value="adv">Adverb</option>
+              <option value="phrasal_v">Phrasal Verb</option>
+              <option value="expr">Expression</option>
+              <option value="prep">Preposition</option>
+              <option value="conj">Conjunction</option>
+            </select>
+          </div>
+          
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-text-main flex items-center gap-1.5">
+              Register {autoFilledRegister && <Zap className="w-3.5 h-3.5 text-amber-500" title="Auto-detected" />}
+            </label>
+            <select value={register} onChange={e => { setRegister(e.target.value as Register); setAutoFilledRegister(false); }} className="w-full px-3 py-2.5 bg-surface-hover border border-border rounded-xl outline-none focus:border-primary focus:bg-surface transition-all text-text-main">
+              <option value="neutral">Neutral</option>
+              <option value="conversational">Conversational</option>
+              <option value="academic">Academic / Formal</option>
+            </select>
+          </div>
+        </div>
 
- <div className="space-y-1.5">
- <label className="text-sm font-medium text-text-main">Context (Optional)</label>
- <input 
- value={context}
- onChange={e => setContext(e.target.value)}
- className="w-full px-3 py-2.5 bg-surface-hover border border-border rounded-xl outline-none focus:border-primary focus:bg-surface transition-all text-text-main" 
- placeholder="Where did you hear/read it?"
- />
- </div>
+        <div className="space-y-1.5">
+          <label className="text-sm font-medium text-text-main">Context (Optional)</label>
+          <input 
+            value={context}
+            onChange={e => setContext(e.target.value)}
+            className="w-full px-3 py-2.5 bg-surface-hover border border-border rounded-xl outline-none focus:border-primary focus:bg-surface transition-all text-text-main" 
+            placeholder="Where did you hear/read it?"
+          />
+        </div>
 
- <button type="submit" className="w-full flex justify-center items-center gap-2 py-3 bg-primary hover:bg-primary-hover text-surface font-medium rounded-xl transition-colors shadow-sm active:scale-[0.99]">
- <Plus className="w-5 h-5" /> Add to Vocabulary
- </button>
+        <div className="space-y-1.5">
+          <label className="text-sm font-medium text-text-main">Notes / Examples (Optional)</label>
+          <input 
+            value={notes}
+            onChange={e => setNotes(e.target.value)}
+            className="w-full px-3 py-2.5 bg-surface-hover border border-border rounded-xl outline-none focus:border-primary focus:bg-surface transition-all text-text-main" 
+            placeholder="e.g. Mnemonic tips or example sentences"
+          />
+        </div>
 
- </form>
- 
+        <button type="submit" className="w-full flex justify-center items-center gap-2 py-3 bg-primary hover:bg-primary-hover text-surface font-medium rounded-xl transition-colors shadow-sm active:scale-[0.99]">
+          <Plus className="w-5 h-5" /> Add to Vocabulary
+        </button>
+
+      </form>
+      
     </div>
   );
 }

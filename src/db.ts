@@ -1,5 +1,5 @@
 import Dexie, { type Table } from 'dexie';
-import { Word, Progress, ReviewLog, Session, SearchHistory } from './types';
+import { Word, Progress, ReviewLog, Session, DictionaryCacheEntry } from './types';
 
 export class VocabDatabase extends Dexie {
   words!: Table<Word, string>;
@@ -7,7 +7,7 @@ export class VocabDatabase extends Dexie {
   reviewLogs!: Table<ReviewLog, string>;
   sessions!: Table<Session, string>;
   appState!: Table<{ id: string; value: any }, string>;
-  searchHistory!: Table<SearchHistory, string>;
+  dictionaryCache!: Table<DictionaryCacheEntry, string>;
 
   constructor() {
     super('VocabDB');
@@ -19,9 +19,12 @@ export class VocabDatabase extends Dexie {
       appState: 'id'
     });
     this.version(2).stores({
-      searchHistory: 'id, term, timestamp'
-    }).upgrade(tx => {
-      // Upgrade logic if needed
+      words: 'id, dateAdded, archived',
+      progress: 'wordId, nextDueAt, status, box',
+      reviewLogs: 'id, wordId, timestamp',
+      sessions: 'date',
+      appState: 'id',
+      dictionaryCache: 'word'
     });
   }
 }
