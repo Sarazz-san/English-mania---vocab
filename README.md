@@ -1,20 +1,58 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# English Mania — Vocabulaire anglais-français
 
-# Run and deploy your AI Studio app
+Une application web pour enrichir son vocabulaire anglais, mémoriser les mots appris et suivre ses révisions.
 
-This contains everything you need to run your app locally.
+## Fonctionnalités
 
-View your app in AI Studio: https://ai.studio/apps/f8bb67c1-1e78-478c-a7ea-d2baff793838
+- **Dictionnaire bilingue** : recherche et traduction anglais-français ou français-anglais, avec exemples, catégorie grammaticale et registre.
+- **Révisions espacées** : révisez vos mots au bon moment grâce à un système de répétition espacée et suivez votre progression.
+- **Gestion du vocabulaire** : ajoutez, consultez et organisez vos mots et expressions.
+- **Jeu de mémorisation** : entraînez-vous avec le mode Match.
+- **Tableau de bord** : retrouvez vos révisions et votre progression.
+- **Mode clair et sombre**.
 
-## Run Locally
+Les mots et la progression sont enregistrés localement dans le navigateur avec IndexedDB.
 
-**Prerequisites:**  Node.js
+## Technologies
 
+React, TypeScript, Vite, Tailwind CSS, Dexie et Express. Le dictionnaire utilise l’API Google Gemini.
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## Prérequis
+
+- Node.js et npm
+- Une clé API Google Gemini pour utiliser la recherche du dictionnaire
+
+## Installation et démarrage
+
+```bash
+git clone https://github.com/Sarazz-san/English-mania---vocab.git
+cd English-mania---vocab
+npm install
+```
+
+Créez un fichier `.env` à la racine et ajoutez votre clé Gemini :
+
+```dotenv
+GEMINI_API_KEY=votre_cle_api_gemini
+```
+
+Lancez l’application en mode développement :
+
+```bash
+npm run dev
+```
+
+L’application est ensuite disponible à l’adresse indiquée dans le terminal (le serveur écoute par défaut sur le port `3000`).
+
+## Scripts disponibles
+
+| Commande | Description |
+| --- | --- |
+| `npm run dev` | Démarre le serveur de développement. |
+| `npm run lint` | Vérifie les types TypeScript. |
+| `npm run build` | Construit l’application pour la production. |
+| `npm run start` | Démarre le serveur de production après le build. |
+
+## Configuration
+
+Le dictionnaire nécessite `GEMINI_API_KEY` côté serveur. Un modèle de configuration est disponible dans [`.env.example`](.env.example). Ne publiez pas votre clé API et ne la placez pas dans le code client.
